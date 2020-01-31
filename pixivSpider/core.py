@@ -40,7 +40,7 @@ class SpiderCore(object):
         :param main_url: 需要获取响应的url
         :return: 获取到的响应 或 None（在网络状况不佳 或 访问过多时）
         """
-        time.sleep(random.randint(1, 3))
+        time.sleep(random.randint(1, DOWNLOAD_DELAY + 1))
         with REQUESTS_SEMAPHORE:
             # for i in range(0, 5):
             while True:
@@ -49,4 +49,4 @@ class SpiderCore(object):
                     return cls.session.get(main_url, timeout=30)
                 except OSError or requests.exceptions.RequestException:
                     # print_s('access url: %s Failed!!!  Retry... ' % (main_url))
-                    time.sleep(random.randint(1, 3))
+                    time.sleep(random.randint(1, DOWNLOAD_DELAY + 1))

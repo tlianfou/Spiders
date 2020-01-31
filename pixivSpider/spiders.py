@@ -9,7 +9,7 @@ import os
 class ImageSpider(object):
     __slots__ = {'__unit_title'}
 
-    def __init__(self, unit_title: str = 'default'):
+    def __init__(self, unit_title: str = 'full'):
         """
         :param unit_title: 在联合保存时会用到的文件夹名称
         """
@@ -24,7 +24,7 @@ class ImageSpider(object):
         """
         # 判断是否放在同一目录下，并获取文件夹title
         if not is_unit:
-            title = re.findall(r'<title>#(.*?) - .*? - pixivSpider</title>', illust_response.text, re.S)
+            title = re.findall(r'<title>#(.*?) - .*? - .*?</title>', illust_response.text, re.S)
             if title.__len__() == 0:
                 title = 'default'
             else:
@@ -127,7 +127,6 @@ class SearchSpider(object):
 
     def get_page(self, page_number: int):
         with PAGES_SEMAPHORE:
-            print_s('access page %s' % page_number)
             response = SpiderCore.get_response(SEARCH_DEFAULT_AJAX % (self.__keyword, self.__keyword, page_number))
             illust_ids = re.findall(r'"illustId":"(.*?)"', response.text.split('total')[0], re.S)
             threads = []

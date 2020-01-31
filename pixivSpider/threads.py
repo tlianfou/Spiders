@@ -17,7 +17,7 @@ class ImageThread(threading.Thread):
                 'file_name': 存放文件名
                 'number': 作品中的第几张image
         """
-        threading.Thread.__init__(self)
+        super(ImageThread, self).__init__()
         self.__package = package
         self.__result: bool = True
 

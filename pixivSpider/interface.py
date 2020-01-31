@@ -36,7 +36,7 @@ def get_ranking(mode: str = 'd'):
     """
     获取排行榜前50名的图片
     :param mode: 获取的排行榜以及存储的方式
-        排行榜
+        ranking
         ========= ===============================================================
         Character Meaning
         --------- ---------------------------------------------------------------
@@ -49,7 +49,7 @@ def get_ranking(mode: str = 'd'):
         'f'       female: 受女性喜欢排行榜
         'r'       r-18: attach-mode
         ========= ===============================================================
-        存储方式
+        store mode
         ========= ===============================================================
         Character Meaning
         --------- ---------------------------------------------------------------
@@ -60,7 +60,7 @@ def get_ranking(mode: str = 'd'):
     :return: None
     """
     # 处理并获取mode
-    mode = utils.handle_mode(mode)
+    mode = handle_mode(mode)
     if mode is None:
         print_s('Mode error')
         return
