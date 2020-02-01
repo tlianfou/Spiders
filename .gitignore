@@ -2,6 +2,9 @@
 demo*.py
 main*.py
 test*.py
+*.flv
+*.mp4
+*.acc
 .idea/
 default/
 
