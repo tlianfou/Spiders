@@ -30,3 +30,6 @@ CONCURRENT_REQUESTS = 25
 # Number of videos displays on the home page of an up master
 # default and recommended: 50
 PAGE_SIZE = 50
+
+# The chunk size while download
+DOWNLOAD_BLOCK_SIZE = 1024 * 100

@@ -34,5 +34,5 @@ class SpiderCore(object):
                 try:
                     return cls.session.get(url, timeout=30, **kwargs)
                 except OSError or requests.exceptions.RequestException:
-                    print_s('access url: %s Failed!!!  Retry... ' % url)
+                    print_err('access url: %s Failed!!!  Retry... \n' % url)
                     time.sleep(random.randint(1, DOWNLOAD_DELAY))

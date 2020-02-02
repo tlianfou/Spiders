@@ -3,6 +3,7 @@
 from .core import SpiderCore
 from .middleware import *
 import threading
+import json
 import re
 
 video_serial = 0
@@ -15,7 +16,23 @@ class VideoMessageThread(threading.Thread):
         super(VideoMessageThread, self).__init__()
         self.__aid = aid
         self.__result = []
+        self.__result.append(self.__aid)
         self.name = 'Thread-aid-%s' % aid
+
+    def get_status(self, api_json: dict):
+        try:
+            status = api_json['data']['stat']
+            self.__result.append(status['view'])
+            self.__result.append(status['danmaku'])
+            self.__result.append(status['reply'])
+            self.__result.append(status['favorite'])
+            self.__result.append(status['coin'])
+            self.__result.append(status['share'])
+            self.__result.append(status['now_rank'])
+            self.__result.append(status['his_rank'])
+            self.__result.append(status['like'])
+        except:
+            print_err('Get status from aid: %s Failed\n' % self.__aid)
 
     def run(self):
         global video_serial
@@ -27,20 +44,11 @@ class VideoMessageThread(threading.Thread):
             print_s('\naccess video %s Failed' % self.__aid)
             return
 
+        api_json = json.loads(api_response.text)
         # 获取标题
-        title = re.findall(r'"title":"(.*?)"', api_response.text, re.S)
-        # 获取状态  播放量、弹幕数
-        status = re.findall(
-            r'"stat":{"aid":.*?,"view":(.*?),"danmaku":(.*?),"reply":(.*?),"favorite":(.*?),"coin":(.*?),"share":(.*?),'
-            r'"now_rank":(.*?),"his_rank":(.*?),"like":(.*?),"dislike":.*?,"evaluation":".*?"}',
-            api_response.text, re.S)
-        if title.__len__() <= 0 or status.__len__() <= 0:
-            print('Get title and status Failed: %s' % self.name)
-            return
-        self.__result.append(self.__aid)
-        self.__result.append(title[0])
-        for data in status[0]:
-            self.__result.append(int(data))
+        self.__result.append(get_title(api_json))
+        # 获取状态
+        self.get_status(api_json)
         with serial_lock:
             video_serial += 1
 

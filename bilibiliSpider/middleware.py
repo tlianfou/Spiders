@@ -1,11 +1,13 @@
 # !/usr/bin/env python
 # -*- coding:utf-8 -*-
-from .settings import CONCURRENT_REQUESTS
+from .settings import CONCURRENT_REQUESTS, \
+    ROOT_PATH, DOWNLOAD_BLOCK_SIZE
 from sys import stderr
 import threading
 import requests
 import openpyxl
 import tempfile
+import hashlib
 import shutil
 import tqdm
 import time
@@ -15,14 +17,12 @@ requests_semaphore = threading.Semaphore(CONCURRENT_REQUESTS)
 print_lock = threading.Lock()
 serial_lock = threading.Lock()
 
-DOWNLOAD_BLOCK_SIZE = 1024 * 100
-
 TEMP_DIRECTORY = os.path.join(os.path.dirname(tempfile.NamedTemporaryFile().name), 'tmp_bilibiliSpider')
 if os.path.exists(TEMP_DIRECTORY):
     shutil.rmtree(TEMP_DIRECTORY)
 os.mkdir(TEMP_DIRECTORY)
 
-FFMPEG_CMD = 'ffmpeg -i %s -i %s -c copy -map 0:v:0 -map 1:a:0 %s'
+FFMPEG_CMD = 'ffmpeg -i %s -i %s -c copy -map 0:v:0 -map 1:a:0 {}/%s'.format(ROOT_PATH)
 
 MAIN_CID = '140213266'  # api访问码
 
@@ -35,7 +35,7 @@ AUTHOR_DEFAULT_URL = 'https://api.bilibili.com/x/space/acc/info?mid=%s&jsonp=jso
 
 VIDEO_DEFAULT_URL = 'https://www.bilibili.com/video/av%s'
 
-API_DEFAULT_URL = 'https://api.bilibili.com/x/web-interface/view?aid=%s&cid=%s'
+API_DEFAULT_URL = 'https://api.bilibili.com/x/web-interface/view?aid=%s&cid={}'.format(MAIN_CID)
 
 DANMAKU_DEFAULT_URL = 'https://api.bilibili.com/x/v1/dm/list.so?oid=%s'
 
@@ -92,14 +92,66 @@ def write2xl(local: str, name: str, *args):
     workbook.close()
 
 
-def download(name: str, response: requests.Response, file):
-    length = int(response.headers['Content-Length'])
-    with tqdm.tqdm(desc=name, total=length, unit='B',
+def download(task_name: str, source_response: requests.Response, store_file):
+    length = int(source_response.headers['Content-Length'])
+    with tqdm.tqdm(desc=task_name, total=length, unit='B',
                    ascii=True, unit_scale=True, unit_divisor=1024) as bar:
-        for chunk in response.iter_content(chunk_size=DOWNLOAD_BLOCK_SIZE):
-            file.write(chunk)
+        for chunk in source_response.iter_content(chunk_size=DOWNLOAD_BLOCK_SIZE):
+            store_file.write(chunk)
             bar.update(len(chunk))
 
 
 def temp_file_path(name: str):
     return os.path.join(TEMP_DIRECTORY, name)
+
+
+def get_title(api_json: dict):
+    try:
+        return api_json['data']['title']
+    except:
+        title_hash = hashlib.md5(str(api_json).encode('utf-8')).hexdigest()
+        print_err('Get video title Failed, Used default title: %s\n' % title_hash)
+        return title_hash
+
+
+def get_pages(api_json: dict):
+    try:
+        return api_json['data']['pages']
+    except:
+        return None
+
+
+def get_cover_url(api_json: dict):
+    try:
+        return api_json['data']['pic']
+    except:
+        return None
+
+
+def get_view(api_json: dict):
+    try:
+        return api_json['data']['stat']['view']
+    except:
+        return None
+
+
+def get_video_cid(api_json: dict):
+    try:
+        return api_json['data']['cid']
+    except:
+        return None
+
+
+def handle_playinfo(playinfo_json: dict):
+    try:
+        video_block = playinfo_json['data']['dash']['video'][0]
+        audio_block = playinfo_json['data']['dash']['audio'][0]
+
+        # video_quality = video_block['id']
+        # audio_quality = audio_block['id']
+        video_url = video_block['baseUrl']
+        audio_url = audio_block['baseUrl']
+
+        return video_url, audio_url
+    except:
+        return None, None
