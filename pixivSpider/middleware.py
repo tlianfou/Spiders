@@ -31,7 +31,7 @@ ARTWORKS__DEFAULT_URL = 'https://www.pixiv.net/artworks/%s'
 ILLUST_DEFAULT_AJAX = 'https://www.pixiv.net/ajax/illust/%s/pages'
 
 SEARCH_DEFAULT_AJAX = 'https://www.pixiv.net/ajax/search/artworks/' \
-                      '%s?word=%s&order=date_d&mode=all&p=%s&s_mode=s_tag&type=all'
+                      '%s?word=%s&order=date_d&p=%s&mode=%s&s_mode=s_tag&type=all'
 
 USER_AGENTS = [
     'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.28.3 (KHTML, like Gecko) '

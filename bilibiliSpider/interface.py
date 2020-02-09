@@ -15,7 +15,7 @@ def get_cover(aid: str):
     if api_response.status_code != 200:
         print_err('access video av%s Failed' % aid)
 
-    api_json = json.loads(api_response.text)
+    api_json = api_response.json()
     title = get_title(api_json)
     cover_url = get_cover_url(api_json)
     if cover_url is None:
@@ -39,7 +39,7 @@ def get_danmaku(aid: str):
         print_err('access aid: %s Failed\n' % aid)
         return
 
-    api_json = json.loads(api_response.text)
+    api_json = api_response.json()
     # 视频的标题和访问码cid
     title = get_title(api_json)
     video_cid = get_video_cid(api_json)
@@ -79,7 +79,7 @@ def get_views(aid: str, delay: int = 60, data_amount: int = 100):
         print_err('Access aid: %s Failed\n' % aid)
         return
 
-    api_json = json.loads(api_response.text)
+    api_json = api_response.json()
     title = get_title(api_json)
 
     print_s('Create workbook: %s/%s_views.xlsx to storing data' % (ROOT_PATH, title))
@@ -102,7 +102,7 @@ def get_views(aid: str, delay: int = 60, data_amount: int = 100):
             print_err('access number: %s Failed\n' % number)
             continue
 
-        api_json = json.loads(api_response.text)
+        api_json = api_response.json()
         view = get_view(api_json)
         if view is None:
             print_err('Get view from loop: %s Failed\n' % number)
@@ -160,7 +160,7 @@ def get_video(aid: str, page: int = None):
         api_response = SpiderCore.get_response(API_DEFAULT_URL % aid)
         if api_response.status_code != 200:
             print_err('access video av%s Failed\n' % aid)
-        api_json = json.loads(api_response.text)
+        api_json = api_response.json()
         pages = get_pages(api_json)
         if pages is not None:
             for page in range(1, len(pages) + 1):

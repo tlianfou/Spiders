@@ -3,7 +3,6 @@
 from .core import SpiderCore
 from .middleware import *
 import threading
-import json
 import re
 
 video_serial = 0
@@ -44,7 +43,7 @@ class VideoMessageThread(threading.Thread):
             print_s('\naccess video %s Failed' % self.__aid)
             return
 
-        api_json = json.loads(api_response.text)
+        api_json = api_response.json()
         # 获取标题
         self.__result.append(get_title(api_json))
         # 获取状态

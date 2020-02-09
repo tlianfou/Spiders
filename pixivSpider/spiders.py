@@ -31,7 +31,7 @@ class ImageSpider(object):
                 title = legal_title(title[0])
             print_s('Use default title: ', title)
         else:
-            title = self.__unit_title
+            title = legal_title(self.__unit_title)
 
         # 获取作品放置的目录并判断是否存在
         location: str = '%s/%s' % (ROOT_PATH, title)
@@ -91,18 +91,19 @@ class ImageSpider(object):
 
 
 class SearchSpider(object):
-    __slots__ = {'__keyword', '__total_page', '__min_bookmark', '__max_bookmark', '__download'}
+    __slots__ = {'keyword', 'total_page', 'min_bookmark', 'max_bookmark', 'download', 'mode'}
 
     def __init__(self, data_package: dir):
-        self.__keyword = data_package['keyword']
-        self.__total_page = data_package['total_page']
-        self.__min_bookmark = data_package['min_bookmark']
-        self.__max_bookmark = data_package['max_bookmark']
-        self.__download = data_package['download']
-        if self.__min_bookmark is None:
-            self.__min_bookmark = 0
-        if self.__max_bookmark is None:
-            self.__max_bookmark = 999999
+        self.keyword = data_package['keyword']
+        self.total_page = data_package['total_page']
+        self.min_bookmark = data_package['min_bookmark']
+        self.max_bookmark = data_package['max_bookmark']
+        self.download = data_package['download']
+        self.mode = data_package['mode']
+        if self.min_bookmark is None:
+            self.min_bookmark = 0
+        if self.max_bookmark is None:
+            self.max_bookmark = 999999
 
     def get_bookmark(self, illust_id: str):
         """
@@ -118,16 +119,17 @@ class SearchSpider(object):
         if bookmark.__len__() <= 0:
             return 0
         bookmark = int(bookmark[0])
-        file_name = re.findall(r'class="self">(.*?)</a>', bookmark_response.text, re.S)[0]
-        if self.__min_bookmark <= bookmark < self.__max_bookmark:
+        file_name = legal_title(re.findall(r'class="self">(.*?)</a>', bookmark_response.text, re.S)[0])
+        if self.min_bookmark <= bookmark < self.max_bookmark:
             print_s('%s: https://www.pixiv.net/artworks/%s' % (file_name, illust_id))
-            if self.__download:
-                image_spider = ImageSpider()
-                image_spider.get_illust(illust_id, file_name=file_name, is_unit=True)
+            if self.download:
+                image_spider = ImageSpider(self.keyword)
+                image_spider.get_illust(illust_id, is_unit=True, file_name=file_name)
 
     def get_page(self, page_number: int):
         with PAGES_SEMAPHORE:
-            response = SpiderCore.get_response(SEARCH_DEFAULT_AJAX % (self.__keyword, self.__keyword, page_number))
+            response = SpiderCore.get_response(
+                SEARCH_DEFAULT_AJAX % (self.keyword, self.keyword, page_number, self.mode))
             illust_ids = re.findall(r'"illustId":"(.*?)"', response.text.split('total')[0], re.S)
             threads = []
             for illust_id in illust_ids:
@@ -138,7 +140,7 @@ class SearchSpider(object):
 
     def run(self):
         threads = []
-        for i in range(0, self.__total_page):
+        for i in range(0, self.total_page):
             threads.append(threading.Thread(target=self.get_page, args=(i + 1,)))
             threads[-1].start()
         for thread in threads:

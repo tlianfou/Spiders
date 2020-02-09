@@ -87,14 +87,15 @@ def get_ranking(mode: str = 'd'):
         thread.join()
 
 
-def search(keyword: str, min_bookmark: int = None, max_bookmark: int = None, download: bool = False):
+def search(keyword: str, min_bookmark: int = None, max_bookmark: int = None,
+           download: bool = False, mode: str = 'safe'):
     if isinstance(min_bookmark, int) and isinstance(max_bookmark, int):
         if min_bookmark > 999999:
             print_s('min overflow')
         elif max_bookmark < min_bookmark:
             print_s('max must bigger than min')
             return
-    total_response = SpiderCore.get_response(SEARCH_DEFAULT_AJAX % (keyword, keyword, 1))
+    total_response = SpiderCore.get_response(SEARCH_DEFAULT_AJAX % (keyword, keyword, 1, mode))
     total = int(re.findall(r'"total":(.*?),', total_response.text, re.S)[0])
     if total / SEARCH_PAGE_SIZE == int(total / SEARCH_PAGE_SIZE):
         total = int(total / SEARCH_PAGE_SIZE)
@@ -105,4 +106,4 @@ def search(keyword: str, min_bookmark: int = None, max_bookmark: int = None, dow
     print('total: %s' % total)
     spiders.SearchSpider(
         {'keyword': keyword, 'total_page': total, 'min_bookmark': min_bookmark,
-         'max_bookmark': max_bookmark, 'download': download}).run()
+         'max_bookmark': max_bookmark, 'download': download, 'mode': mode}).run()
